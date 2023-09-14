@@ -25,7 +25,7 @@ import argparse
 import numpy as np
 import torch
 import torchvision
-from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageChops
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageChops, ImageFilter
 from scipy import ndimage
 
 # Grounding DINO
@@ -84,8 +84,10 @@ def sharpen_boundaries(input_image):
     
     # Subtract eroded image from dilated image
     sharpened = ImageChops.difference(dilated, eroded)
+
+    enhanced_edges = sharpened.filter(ImageFilter.EDGE_ENHANCE)
     
-    return sharpened
+    return enhanced_edges
 
 
 def get_grounding_output(model, image, caption, box_threshold, text_threshold, with_logits=True):
