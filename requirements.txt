@@ -19,3 +19,9 @@ torchvision
 transformers
 yapf
 scipy
+opencv-python
+pycocotools
+matplotlib
+onnxruntime
+onnx
+ipykernel

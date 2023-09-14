@@ -4,17 +4,10 @@ import warnings
 
 os.system("python -m pip install -e sam-hq")
 os.system("python -m pip install -e GroundingDINO")
-os.system("pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel")
+# os.system("pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel")
 os.system("wget https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth")
 os.system("wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth")
 os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example0.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example1.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example2.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example3.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example4.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example5.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example6.png")
-os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example7.png")
 sys.path.append(os.path.join(os.getcwd(), "GroundingDINO"))
 sys.path.append(os.path.join(os.getcwd(), "sam-hq"))
 warnings.filterwarnings("ignore")
@@ -53,7 +46,6 @@ def generate_caption(processor, blip_model, raw_image):
 
 
 def transform_image(image_pil):
-
     transform = T.Compose(
         [
             T.RandomResize([800], max_size=1333),
@@ -81,10 +73,11 @@ def sharpen_boundaries(input_image):
     # Apply dilation and erosion to sharpen boundaries
     dilated = ImageOps.expand(input_image, border=2, fill='white')
     eroded = ImageOps.crop(dilated, border=2)
-    
+
     # Subtract eroded image from dilated image
     sharpened = ImageChops.difference(dilated, eroded)
 
+    # Apply edge enhance filter
     enhanced_edges = sharpened.filter(ImageFilter.EDGE_ENHANCE)
     
     return enhanced_edges
@@ -293,6 +286,7 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
 
         image_pil = image_pil.convert('RGBA')
         image_pil.alpha_composite(mask_image)
+        mask_image = enhanced_edges(mask_image)
         return [image_pil, mask_image]
 
     elif task_type == 'scribble_point':
@@ -401,21 +395,7 @@ if __name__ == "__main__":
         with gr.Row():
             with gr.Column():
                 gr.Examples(["example0.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example1.png"], inputs=input_image)
-            with gr.Column():            
-                gr.Examples(["example2.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example3.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example4.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example5.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example6.png"], inputs=input_image)
-            with gr.Column():
-                gr.Examples(["example7.png"], inputs=input_image)
-
+        
         run_button.click(fn=run_grounded_sam, inputs=[
             input_image, text_prompt, task_type, box_threshold, text_threshold, iou_threshold, hq_token_only], outputs=gallery)
 
