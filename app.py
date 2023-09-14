@@ -121,7 +121,7 @@ def draw_mask(mask, draw, random_color=False):
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255), 153)
     else:
-        color = (30, 144, 255, 153)
+        color = (255, 255, 255, 255)
 
     nonzero_coords = np.transpose(np.nonzero(mask))
 
@@ -265,7 +265,7 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
         mask_image = Image.new('RGBA', size, color=(0, 0, 0, 0))
         mask_draw = ImageDraw.Draw(mask_image)
         for mask in masks:
-            draw_mask(mask[0].cpu().numpy(), mask_draw, random_color=True)
+            draw_mask(mask[0].cpu().numpy(), mask_draw, random_color=False)
         image_draw = ImageDraw.Draw(image_pil)
 
         if task_type == 'scribble_box':
@@ -302,7 +302,7 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
         mask_image = Image.new('RGBA', size, color=(0, 0, 0, 0))
         mask_draw = ImageDraw.Draw(mask_image)
         for mask in masks:
-            draw_mask(mask, mask_draw, random_color=True)
+            draw_mask(mask, mask_draw, random_color=False)
         image_draw = ImageDraw.Draw(image_pil)
 
         draw_point(point_coords,image_draw)
