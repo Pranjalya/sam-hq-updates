@@ -121,7 +121,7 @@ def draw_mask(mask, draw, random_color=False):
         color = (random.randint(0, 255), random.randint(
             0, 255), random.randint(0, 255), 153)
     else:
-        color = (255, 255, 255, 255)
+        color = (0, 0, 0, 255)
 
     nonzero_coords = np.transpose(np.nonzero(mask))
 
