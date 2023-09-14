@@ -25,7 +25,7 @@ import argparse
 import numpy as np
 import torch
 import torchvision
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageChops
 from scipy import ndimage
 
 # Grounding DINO
@@ -75,6 +75,17 @@ def load_model(model_config_path, model_checkpoint_path, device):
     print(load_res)
     _ = model.eval()
     return model
+
+
+def sharpen_boundaries(input_image):
+    # Apply dilation and erosion to sharpen boundaries
+    dilated = ImageOps.expand(input_image, border=2, fill='white')
+    eroded = ImageOps.crop(dilated, border=2)
+    
+    # Subtract eroded image from dilated image
+    sharpened = ImageChops.difference(dilated, eroded)
+    
+    return sharpened
 
 
 def get_grounding_output(model, image, caption, box_threshold, text_threshold, with_logits=True):
