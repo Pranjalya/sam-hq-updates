@@ -320,6 +320,7 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
 
         image_pil = image_pil.convert('RGBA')
         image_pil.alpha_composite(mask_image)
+        mask_image = sharpen_boundaries(mask_image)
         return [image_pil, mask_image]
 
     else:
