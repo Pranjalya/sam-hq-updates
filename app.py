@@ -6,7 +6,7 @@ os.system("python -m pip install -e sam-hq")
 os.system("python -m pip install -e GroundingDINO")
 os.system("pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel")
 os.system("wget https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth")
-os.system("wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_l.pth")
+os.system("wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth")
 os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example0.png")
 os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example1.png")
 os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example2.png")
@@ -35,7 +35,7 @@ from GroundingDINO.groundingdino.util.slconfig import SLConfig
 from GroundingDINO.groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
 
 # segment anything
-from segment_anything import build_sam_vit_l, SamPredictor 
+from segment_anything import build_sam_vit_h, SamPredictor 
 import numpy as np
 
 
@@ -157,7 +157,7 @@ def draw_point(point, draw, r=10):
 
 config_file = 'GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py'
 ckpt_filenmae = "groundingdino_swint_ogc.pth"
-sam_checkpoint = 'sam_hq_vit_l.pth'
+sam_checkpoint = 'sam_hq_vit_h.pth'
 output_dir = "outputs"
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -222,7 +222,7 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
     if sam_predictor is None:
         # initialize SAM
         assert sam_checkpoint, 'sam_checkpoint is not found!'
-        sam = build_sam_vit_l(checkpoint=sam_checkpoint)
+        sam = build_sam_vit_h(checkpoint=sam_checkpoint)
         sam.to(device=device)
         sam_predictor = SamPredictor(sam)
 
