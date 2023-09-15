@@ -172,17 +172,17 @@ blip_processor = None
 blip_model = None
 groundingdino_model = None
 sam_predictor = None
+task_type = "automatic"
 
-
-def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_threshold, iou_threshold, hq_token_only):
+def run_grounded_sam(input_image, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only):
 
     global blip_processor, blip_model, groundingdino_model, sam_predictor
 
     # make dir
     os.makedirs(output_dir, exist_ok=True)
     # load image
-    scribble = np.array(input_image["mask"])
-    image_pil = input_image["image"].convert("RGB")
+    # scribble = np.array(input_image["mask"])
+    image_pil = input_image.convert("RGB")
     transformed_image = transform_image(image_pil)
 
     if groundingdino_model is None:
@@ -241,23 +241,9 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
         # use NMS to handle overlapped boxes
         print(f"Revise caption with number: {text_prompt}")
     
-    if task_type == 'text' or task_type == 'automatic' or task_type == 'scribble_box':
-        if task_type == 'scribble_box':
-            scribble = scribble.transpose(2, 1, 0)[0]
-            labeled_array, num_features = ndimage.label(scribble >= 255)
-            centers = ndimage.center_of_mass(scribble, labeled_array, range(1, num_features+1))
-            centers = np.array(centers)
-            ### (x1, y1, x2, y2)
-            x_min = centers[:, 0].min()
-            x_max = centers[:, 0].max()
-            y_min = centers[:, 1].min()
-            y_max = centers[:, 1].max()
-            bbox = np.array([x_min, y_min, x_max, y_max])
-            bbox = torch.tensor(bbox).unsqueeze(0)
-            transformed_boxes = sam_predictor.transform.apply_boxes_torch(bbox, image.shape[:2]).to(device)
-        else:
-            transformed_boxes = sam_predictor.transform.apply_boxes_torch(
-                boxes_filt, image.shape[:2]).to(device)
+    if task_type == 'text' or task_type == 'automatic':
+        transformed_boxes = sam_predictor.transform.apply_boxes_torch(
+            boxes_filt, image.shape[:2]).to(device)
 
         masks, _, _ = sam_predictor.predict_torch(
             point_coords=None,
@@ -274,51 +260,16 @@ def run_grounded_sam(input_image, text_prompt, task_type, box_threshold, text_th
             draw_mask(mask[0].cpu().numpy(), mask_draw, random_color=False)
         image_draw = ImageDraw.Draw(image_pil)
 
-        if task_type == 'scribble_box':
-            for box in bbox:
-                draw_box(box, image_draw, None)
-        else:
-            for box, label in zip(boxes_filt, pred_phrases):
-                draw_box(box, image_draw, label)
+        for box, label in zip(boxes_filt, pred_phrases):
+            draw_box(box, image_draw, label)
 
         if task_type == 'automatic':
             image_draw.text((10, 10), text_prompt, fill='black')
 
         image_pil = image_pil.convert('RGBA')
         image_pil.alpha_composite(mask_image)
-        mask_image = enhanced_edges(mask_image)
+        # mask_image = enhanced_edges(mask_image)
         return [image_pil, mask_image]
-
-    elif task_type == 'scribble_point':
-
-        scribble = scribble.transpose(2, 1, 0)[0]
-        labeled_array, num_features = ndimage.label(scribble >= 255)
-        centers = ndimage.center_of_mass(scribble, labeled_array, range(1, num_features+1))
-        centers = np.array(centers)
-        point_coords = centers
-        point_labels = np.ones(point_coords.shape[0])
-
-        masks, _, _ = sam_predictor.predict(
-            point_coords=point_coords,
-            point_labels=point_labels,
-            box=None,
-            multimask_output=False,
-            hq_token_only=hq_token_only,
-        )
-
-        mask_image = Image.new('RGBA', size, color=(0, 0, 0, 0))
-        mask_draw = ImageDraw.Draw(mask_image)
-        for mask in masks:
-            draw_mask(mask, mask_draw, random_color=False)
-        image_draw = ImageDraw.Draw(image_pil)
-
-        draw_point(point_coords,image_draw)
-
-        image_pil = image_pil.convert('RGBA')
-        image_pil.alpha_composite(mask_image)
-        mask_image = sharpen_boundaries(mask_image)
-        return [image_pil, mask_image]
-
     else:
         print("task_type:{} error!".format(task_type))
 
@@ -369,9 +320,9 @@ if __name__ == "__main__":
         with gr.Row():
             with gr.Column():
                 input_image = gr.Image(
-                    source='upload', type="pil", value="example0.png", tool="sketch",brush_radius=20)
+                    source='upload', type="pil", value="example0.png")
                 task_type = gr.Dropdown(
-                    ["automatic", "scribble_point", "scribble_box", "text"], value="automatic", label="task_type")
+                    ["automatic", "text"], value="automatic", label="task_type")
                 text_prompt = gr.Textbox(label="Text Prompt", placeholder="bench .")
                 hq_token_only = gr.Dropdown(
                     [False, True], value=False, label="hq_token_only"
@@ -397,6 +348,6 @@ if __name__ == "__main__":
                 gr.Examples(["example0.png"], inputs=input_image)
         
         run_button.click(fn=run_grounded_sam, inputs=[
-            input_image, text_prompt, task_type, box_threshold, text_threshold, iou_threshold, hq_token_only], outputs=gallery)
+            input_image, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only], outputs=gallery)
 
     block.launch(debug=args.debug, share=args.share, show_error=True)
