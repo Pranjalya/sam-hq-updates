@@ -5,8 +5,8 @@ import warnings
 os.system("python -m pip install -e sam-hq")
 os.system("python -m pip install -e GroundingDINO")
 # os.system("pip install opencv-python pycocotools matplotlib onnxruntime onnx ipykernel")
-os.system("wget https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth")
-os.system("wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth")
+# os.system("wget https://huggingface.co/ShilongLiu/GroundingDINO/resolve/main/groundingdino_swint_ogc.pth")
+# os.system("wget https://huggingface.co/lkeab/hq-sam/resolve/main/sam_hq_vit_h.pth")
 os.system("wget https://raw.githubusercontent.com/SysCV/sam-hq/main/demo/input_imgs/example0.png")
 sys.path.append(os.path.join(os.getcwd(), "GroundingDINO"))
 sys.path.append(os.path.join(os.getcwd(), "sam-hq"))
@@ -184,8 +184,8 @@ def run_grounded_sam(input_image, box_threshold, text_threshold, iou_threshold):
     # make dir
     os.makedirs(output_dir, exist_ok=True)
     # load image
-    scribble = np.array(input_image["mask"])
-    image_pil = input_image["image"].convert("RGB")
+    # scribble = np.array(input_image["mask"])
+    image_pil = input_image.convert("RGB")
     transformed_image = transform_image(image_pil)
 
     if groundingdino_model is None:
@@ -289,7 +289,7 @@ def run_grounded_sam(input_image, box_threshold, text_threshold, iou_threshold):
 
         image_pil = image_pil.convert('RGBA')
         image_pil.alpha_composite(mask_image)
-        mask_image = enhanced_edges(mask_image)
+        # mask_image = sharpen_boundaries(mask_image)
         return [image_pil, mask_image]
 
     elif task_type == 'scribble_point':
@@ -372,7 +372,7 @@ if __name__ == "__main__":
         with gr.Row():
             with gr.Column():
                 input_image = gr.Image(
-                    source='upload', type="pil", value="example0.png", tool="sketch",brush_radius=20)
+                    source='upload', type="pil", value="example0.png")
                 # task_type = gr.Dropdown(
                 #     ["automatic", "scribble_point", "scribble_box", "text"], value="automatic", label="task_type")
                 # text_prompt = gr.Textbox(label="Text Prompt", placeholder="bench .")
