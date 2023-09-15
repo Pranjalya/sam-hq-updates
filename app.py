@@ -172,16 +172,15 @@ blip_processor = None
 blip_model = None
 groundingdino_model = None
 sam_predictor = None
-task_type = "automatic"
 
-def run_grounded_sam(input_image, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only):
+
+def run_grounded_sam(input_image, task_type, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only):
 
     global blip_processor, blip_model, groundingdino_model, sam_predictor
 
     # make dir
     os.makedirs(output_dir, exist_ok=True)
     # load image
-    # scribble = np.array(input_image["mask"])
     image_pil = input_image.convert("RGB")
     transformed_image = transform_image(image_pil)
 
@@ -348,6 +347,6 @@ if __name__ == "__main__":
                 gr.Examples(["example0.png"], inputs=input_image)
         
         run_button.click(fn=run_grounded_sam, inputs=[
-            input_image, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only], outputs=gallery)
+            input_image, task_type, text_prompt, box_threshold, text_threshold, iou_threshold, hq_token_only], outputs=gallery)
 
     block.launch(debug=args.debug, share=args.share, show_error=True)
