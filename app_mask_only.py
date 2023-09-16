@@ -253,7 +253,7 @@ def run_grounded_sam(input_image, task_type, text_prompt, box_threshold, text_th
         )
 
         # masks: [1, 1, 512, 512]
-        mask_image = Image.new('RGBA', size, color=(0, 0, 0, 0))
+        mask_image = Image.new('RGBA', size, color=(255, 255, 255, 255))
         mask_draw = ImageDraw.Draw(mask_image)
         for mask in masks:
             draw_mask(mask[0].cpu().numpy(), mask_draw, random_color=False)
