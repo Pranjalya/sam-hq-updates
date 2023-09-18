@@ -20,6 +20,7 @@ import torch
 import torchvision
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageChops, ImageFilter
 from scipy import ndimage
+from torchvision.transforms import GaussianBlur
 
 # Grounding DINO
 import GroundingDINO.groundingdino.datasets.transforms as T
@@ -268,6 +269,10 @@ def run_grounded_sam(input_image, task_type, text_prompt, box_threshold, text_th
         # image_pil = image_pil.convert('RGBA')
         # image_pil.alpha_composite(mask_image)
         # mask_image = enhanced_edges(mask_image)
+
+        # Apply Gaussian Blur
+        blur = GaussianBlur(11, 20)
+        mask_image = blur(mask_image)
         return mask_image
     else:
         print("task_type:{} error!".format(task_type))
